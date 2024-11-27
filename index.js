@@ -99,65 +99,12 @@ async function main_cont(){
 
 }
 
-// Separate server startup into its own function
+
 async function startServer() {
-  const app = express();
-  app.use(cors());
-  
-  // Fix the path creation
-  const uploadDirectory = path.join(process.cwd(), "uploads");
-  // OR alternatively:
-  // const uploadDirectory = "./uploads";
-
-  // Ensure uploads directory exists
-  if (!fs.existsSync(uploadDirectory)) {
-    try {
-      fs.mkdirSync(uploadDirectory, { recursive: true });
-    } catch (error) {
-      console.error('Error creating uploads directory:', error);
-      throw error;
-    }
-  }
-
-  // Set up multer for handling file uploads
-  const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-      cb(null, uploadDirectory); // Save files in 'uploads' directory
-    },
-    filename: (req, file, cb) => {
-      cb(null, file.originalname); // Keep the original file name
-    },
-  });
-  const upload = multer({ storage });
-
-  // Handle file upload route
-  app.post("/upload", upload.single("file"), async (req, res) => {
-    if (!req.file) {
-      return res.status(400).json({ error: "No file uploaded" });
-    }
-
-    const filePath = path.join(uploadDirectory, req.file.filename);
-    console.log(`File uploaded to: ${filePath}`);
-
-    try {
-      const data = fs.readFileSync(filePath);
-      const pdfData = await PDFParser(data);
-      console.log(pdfData.text); // Output PDF text
-      res
-        .status(200)
-        .json({ message: "File uploaded and processed", data: pdfData.text });
-    } catch (error) {
-      console.error("Error reading or processing file:", error);
-      res.status(500).json({ error: "Failed to process file" });
-    }
-  });
-
-  return new Promise((resolve) => {
-    app.listen(3000, () => {
-      console.log("Server is running on port 3000");
-      resolve();
-    });
-  });
+  const PORT = process.env.PORT || 3000; // Use the port from the environment or default to 3000
+   app.listen(PORT, () => {
+       console.log(`Server is running on port ${PORT}`);
+   });
 }
 
 main().catch(console.error);
